@@ -1,51 +1,49 @@
-from pathlib import Path
+import streamlit as st
 
-from dotenv import load_dotenv
-from openai import OpenAI
-from pydub import AudioSegment
+from caption_generator import generate_captions
 
-# Load environment variables from the .env file
-load_dotenv()
 
-# Create an OpenAI client
-client = OpenAI()
+def run_app() -> None:
+    """
+    Run the Streamlit interface for the video caption generator.
+    """
 
-# Define the project folder based on the current file location
-project_folder = Path(__file__).parent
+    st.header("Video Caption Generator", divider=True)
 
-# Define input and output file paths
-video_file_path = project_folder / "video.mp4"
-audio_file_path = project_folder / "audio.mp3"
-subtitle_file_path = project_folder / "captions.srt"
-
-# Get the video file extension without the dot. ex: mp4
-video_file_extension = video_file_path.suffix.replace(".", "")
-
-# Load the video file and extract its audio
-audio = AudioSegment.from_file(
-    file=video_file_path,
-    format=video_file_extension
-)
-
-# Export the extracted audio as an MP3 file
-audio.export(audio_file_path, format="mp3")
-
-# Add context to help the transcription model understand the audio better
-context_prompt = "The audio contains Portuguese content about software development."
-
-# Open the extracted audio file and send it to the transcription model
-with open(audio_file_path, "rb") as audio_file:
-    transcription = client.audio.transcriptions.create(
-        file=audio_file,
-        model="whisper-1",
-        language="pt",
-        response_format="srt",
-        prompt=context_prompt
+    st.markdown(
+        "Generate subtitles automatically from a video or audio file using OpenAI speech-to-text."
     )
 
-# Display the generated subtitles in the terminal
-print(transcription)
+    context_prompt = st.text_input(
+        "Add some context about the content to improve the transcription:",
+        placeholder="Example: This is Portuguese content about software development."
+    )
 
-# Save the transcription as an SRT subtitle file
-with open(subtitle_file_path, "w", encoding="utf-8") as subtitle_file:
-    subtitle_file.write(transcription)
+    uploaded_file = st.file_uploader(
+        "Upload a video or audio file",
+        type=["mp4", "mp3", "wav", "m4a"]
+    )
+
+    if uploaded_file:
+        with st.spinner("Generating captions..."):
+            captions = generate_captions(uploaded_file, context_prompt)
+
+        st.success(f"File '{uploaded_file.name}' was captioned successfully.")
+
+        st.markdown("### Generated captions")
+        st.text_area(
+            label="SRT output",
+            value=captions,
+            height=300
+        )
+
+        st.download_button(
+            label="Download SRT file",
+            data=captions,
+            file_name="captions.srt",
+            mime="text/plain"
+        )
+
+
+if __name__ == "__main__":
+    run_app()
