@@ -137,7 +137,3 @@ The main goals of this project are:
 - Convert video or audio input into subtitle files
 - Build a simple user interface with Streamlit
 - Apply good practices with environment variables, project structure, and documentation
-
-## Status
-
-Project completed as part of the OpenAI module.
