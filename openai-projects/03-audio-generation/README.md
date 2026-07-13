@@ -27,7 +27,6 @@ The main goal is to understand how text-to-speech works and how to save generate
 
 ```text
 03-audio-generation/
-├── audio_generator.py
 ├── main.py
 ├── README.md
 └── generated/
