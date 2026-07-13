@@ -1,7 +1,7 @@
 import streamlit as st
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage
 
-from openai_model import messages, model
+from huggingface_model import messages, model
 
 
 def open_chat(prompt, model, messages):
@@ -24,8 +24,15 @@ def open_chat(prompt, model, messages):
         # Send the conversation history to the model
         response = model.invoke(messages)
 
-        # Add the model response to the conversation history
-        messages.append(response)
+        response_content = response.content
+
+        # Some reasoning models return internal thinking before </think>.
+        # This keeps only the final answer after the thinking section.
+        if "</think>" in response_content:
+            final_answer = response_content.split("</think>", 1)[1].strip()
+            messages.append(AIMessage(content=final_answer))
+        else:
+            messages.append(response)
 
     # Display all messages except the system message
     for message in messages:
@@ -42,7 +49,7 @@ def run_app():
     st.header("LangChain Chatbot", divider=True)
 
     st.markdown(
-        "#### Chat with an OpenAI model using LangChain and Streamlit"
+        "#### Chat with a Hugging Face model using LangChain and Streamlit"
     )
 
     # Chat input field displayed at the bottom of the page
