@@ -15,5 +15,25 @@ __pycache__/
 # VS Code
 .vscode/
 
-# Jupyter Notebook
-.ipynb_checkpoints/
+# Video files
+*.mp4
+*.mov
+*.avi
+*.mkv
+
+# Audio files
+*.mp3
+*.wav
+*.m4a
+
+# Generated subtitle files
+*.srt
+
+# Generated image files
+*.png
+*.jpg
+*.jpeg
+*.webp
+
+# Generated project outputs
+generated/
