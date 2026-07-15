@@ -1,8 +1,8 @@
 from dotenv import load_dotenv
-from langchain_core.prompts.chat import MessagesPlaceholder
-from langchain_core.messages import SystemMessage
-from langchain_openai.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
+from langchain_core.messages import SystemMessage
+from langchain_core.prompts.chat import MessagesPlaceholder
+from langchain_openai.chat_models import ChatOpenAI
 
 # Load environment variables from the .env file
 load_dotenv()

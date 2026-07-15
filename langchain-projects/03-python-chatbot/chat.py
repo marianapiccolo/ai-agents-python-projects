@@ -4,33 +4,36 @@ from langchain_core.messages import HumanMessage
 from openai_model import chain
 
 
-def open_chat(prompt: str | None) -> None:
+def open_chat(prompt: str | None, chain) -> None:
     """
-    Display the user message and generate an AI response using the LangChain chain.
+    Run the chatbot using Streamlit session state to store message history.
     """
 
+    # Initialize the message history in Streamlit session state
+    if "messages" not in st.session_state:
+        st.session_state["messages"] = []
+
+    messages = st.session_state["messages"]
+
+    # If the user sends a new message, add it to the history and call the chain
     if prompt:
-        # Create a simple conversation history with the user message
-        messages = [
-            HumanMessage(content=prompt)
-        ]
+        messages.append(HumanMessage(content=prompt))
 
-        # Display the user message in the Streamlit chat interface
-        for message in messages:
-            if message.type != "system":
-                with st.chat_message(message.type):
-                    st.write(message.content)
-
-        # Send the conversation history to the chain
-        response = chain.invoke(
+        # Send the full conversation history to the chain
+        ai_response = chain.invoke(
             {
                 "history": messages
             }
         )
 
-        # Display the AI response
-        with st.chat_message("ai"):
-            st.write(response.content)
+        # Add the AI response to the message history
+        messages.append(ai_response)
+
+    # Display all messages stored in the conversation history
+    for message in messages:
+        if message.type != "system":
+            with st.chat_message(message.type):
+                st.write(message.content)
 
 
 def run_app() -> None:
@@ -44,7 +47,7 @@ def run_app() -> None:
 
     prompt = st.chat_input("Type your prompt here")
 
-    open_chat(prompt)
+    open_chat(prompt, chain)
 
 
 if __name__ == "__main__":
