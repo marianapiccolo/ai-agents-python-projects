@@ -1,10 +1,14 @@
+from pathlib import Path
+
 from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
+from langchain_core.runnables import RunnableLambda
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
 # Load environment variables from the .env file
+# This includes OpenAI and LangSmith settings
 load_dotenv()
 
 # Example product reviews
@@ -96,7 +100,7 @@ format_template = PromptTemplate.from_template(
     }
 )
 
-# Combine all templates into one final prompt
+# Combine all prompt templates into one final template
 review_template = (
     context_template
     + language_template
@@ -107,11 +111,11 @@ review_template = (
 model = ChatOpenAI()
 
 # First chain:
-# receives the reviews, sends them to the model, and parses the response as JSON
+# reviews -> structured review evaluations
 review_analysis_chain = review_template | model | review_parser
 
 # Template for the second chain:
-# receives the structured evaluations and generates a general summary
+# structured evaluations -> final text analysis
 summary_template = PromptTemplate.from_template(
     """
     Analyze the following list of product review evaluations and answer:
@@ -129,13 +133,36 @@ summary_template = PromptTemplate.from_template(
 text_parser = StrOutputParser()
 
 # Second chain:
-# receives the structured review evaluations and generates a text analysis
+# structured review evaluations -> text summary
 summary_chain = summary_template | model | text_parser
 
+
+def save_reviews_to_file(review_data: dict) -> dict:
+    """
+    Save the structured review evaluations to a local text file.
+
+    The function returns the same data it received so the next chain
+    can continue using it.
+    """
+
+    output_folder = Path(__file__).parent / "generated"
+    output_folder.mkdir(exist_ok=True)
+
+    output_file_path = output_folder / "reviews.txt"
+
+    with open(output_file_path, "w", encoding="utf-8") as output_file:
+        for evaluation in review_data["evaluations"]:
+            output_file.write(f"{evaluation}\n")
+
+    return review_data
+
+
+# Convert a regular Python function into a LangChain runnable step
+save_reviews_runnable = RunnableLambda(save_reviews_to_file)
+
 # Global chain:
-# connects the first chain to the second chain
-# reviews -> structured evaluations -> final text analysis
-global_chain = review_analysis_chain | summary_chain
+# reviews -> structured evaluations -> save file -> final summary
+global_chain = review_analysis_chain | save_reviews_runnable | summary_chain
 
 # Run the full chain
 analysis_response = global_chain.invoke(
