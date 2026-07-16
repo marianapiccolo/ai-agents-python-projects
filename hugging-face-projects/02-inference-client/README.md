@@ -1,23 +1,30 @@
 # Hugging Face Inference Client
 
-This project introduces how to use Hugging Face models through the Inference Client.
+This project shows how to use Hugging Face models through the `InferenceClient`.
 
-The main goal is to understand how to use models hosted on Hugging Face without downloading them locally.
+The main goal is to use remote Hugging Face models without downloading them locally.  
+The project also includes a simple Streamlit interface with three AI tools:
+
+- text generation
+- text summarization
+- chat completion
 
 ## Technologies
 
 - Python
 - Hugging Face Hub
-- InferenceClient
+- Hugging Face Inference Client
+- Streamlit
 - Python-dotenv
 
 ## Project Structure
 
 ```text
 02-inference-client/
+├── hfapi_chat_completion.py
 ├── hfapi_summarization.py
 ├── hfapi_text_generation.py
-├── hfapi_chat_completion.py
+├── main.py
 └── README.md
 ```
 
@@ -26,22 +33,26 @@ The main goal is to understand how to use models hosted on Hugging Face without 
 The project uses the Hugging Face `InferenceClient` to call remote models through the Hugging Face API.
 
 ```text
-Input
+User input
+  ↓
+Streamlit interface
   ↓
 InferenceClient
   ↓
 Remote Hugging Face model
   ↓
 Model response
+  ↓
+Streamlit output
 ```
 
-This means the model does not need to be downloaded or executed locally.
+This approach allows the application to use AI models without downloading or running them locally.
 
 ## Local Models vs Inference Client
 
 ### Local models
 
-Local models are loaded with libraries such as `transformers` or `diffusers`.
+Local models are loaded and executed on the local machine using libraries such as `transformers` or `diffusers`.
 
 Example:
 
@@ -54,11 +65,11 @@ summarizer = pipeline(
 )
 ```
 
-This approach may download and run the model on the local machine.
+This approach may download the model and use local CPU or GPU resources.
 
 ### Inference Client
 
-The Inference Client calls models through the Hugging Face API.
+The Inference Client calls hosted models through the Hugging Face API.
 
 Example:
 
@@ -68,13 +79,15 @@ from huggingface_hub import InferenceClient
 client = InferenceClient()
 ```
 
-This approach allows the project to use remote models without downloading them locally.
+This approach uses remote models and does not require downloading the model locally.
 
-## Summarization Example
+## Files
 
-The `hfapi_summarization.py` file shows how to summarize text using a remote Hugging Face model.
+## `hfapi_summarization.py`
 
-It uses the `facebook/bart-large-cnn` model.
+This file contains the summarization function.
+
+It uses the `facebook/bart-large-cnn` model to summarize long texts.
 
 Example:
 
@@ -85,25 +98,21 @@ response = client.summarization(
 )
 ```
 
-Workflow:
+The function receives a text and returns a summary.
 
 ```text
 Long text
-  ↓
-InferenceClient
   ↓
 Remote summarization model
   ↓
 Summary
 ```
 
-This is useful when the goal is to reduce a long text into a shorter version while keeping the main ideas.
+## `hfapi_text_generation.py`
 
-## Text Generation Example
+This file contains the text generation function.
 
-The `hfapi_text_generation.py` file shows how to generate text using a remote Hugging Face model through the Inference Client.
-
-It uses the `meta-llama/Llama-3.2-3B-Instruct` model.
+It uses the `meta-llama/Llama-3.2-3B-Instruct` model to generate text from a prompt.
 
 Example:
 
@@ -115,56 +124,41 @@ client = InferenceClient(
 response = client.text_generation(prompt)
 ```
 
-Workflow:
+The function receives a prompt and returns generated text.
 
 ```text
 Prompt
-  ↓
-InferenceClient
   ↓
 Remote text generation model
   ↓
 Generated text
 ```
 
-This is useful when the goal is to send a prompt and receive generated text from a hosted language model.
+## `hfapi_chat_completion.py`
 
-## Chat Completion Example
+This file contains the chat completion function.
 
-## Chat Completion Example
-
-The `hfapi_chat_completion.py` file shows how to create a simple terminal chatbot using the Hugging Face Inference Client.
-
-It uses the `meta-llama/Llama-3.2-3B-Instruct` model.
-
-The script keeps a conversation history using a list of messages. Each user message and AI response is appended to the list, allowing the model to answer with context from previous messages.
+It uses the `meta-llama/Llama-3.2-3B-Instruct` model to answer based on a conversation history.
 
 Example:
 
 ```python
 response = client.chat_completion(messages)
-
 ```
 
-Workflow:
+The function receives a list of messages and appends the AI response to the conversation history.
 
 ```text
-System message
-  ↓
-User message
-  ↓
 Conversation history
-  ↓
-InferenceClient
   ↓
 Remote chat model
   ↓
 AI response
   ↓
-Update conversation history
+Updated conversation history
 ```
 
-The chat uses a list of messages with roles:
+The messages follow this format:
 
 ```python
 messages = [
@@ -179,32 +173,96 @@ messages = [
 ]
 ```
 
-Each user message and AI response is added to the conversation history.  
-This allows the model to answer with context from previous messages.
-
-## Text Generation vs Chat Completion
-
-`text_generation` is useful for simple prompt completion.
-
-```python
-response = client.text_generation(prompt)
-```
-
-`chat_completion` is better for chatbot-style applications.
-
-```python
-response = client.chat_completion(messages)
-```
-
-Main difference:
+The main roles are:
 
 ```text
-text_generation
-→ prompt in, generated text out
+system
+→ defines the assistant behavior
 
-chat_completion
-→ message history in, assistant response out
+user
+→ message sent by the user
+
+assistant
+→ response generated by the AI model
 ```
+
+## `main.py`
+
+This file contains the Streamlit application.
+
+The app allows the user to choose between three AI tools:
+
+```text
+Generate Text
+Summarize Text
+Open Chat
+```
+
+The selected tool receives the user prompt and calls the correct Hugging Face function.
+
+## Streamlit App Features
+
+## Generate Text
+
+The user writes a prompt, and the app generates a response using a remote language model.
+
+```text
+Prompt
+  ↓
+generate_text()
+  ↓
+InferenceClient
+  ↓
+Generated text
+```
+
+## Summarize Text
+
+The user pastes a long text, and the app generates a shorter summary.
+
+```text
+Long text
+  ↓
+summarize_text()
+  ↓
+InferenceClient
+  ↓
+Summary
+```
+
+## Open Chat
+
+The user can chat with an AI assistant through the Streamlit interface.
+
+The chat stores the conversation history using `st.session_state`.
+
+```text
+User message
+  ↓
+st.session_state messages
+  ↓
+complete_chat()
+  ↓
+InferenceClient
+  ↓
+AI response
+  ↓
+Updated chat history
+```
+
+## Why `st.session_state` Is Used
+
+Streamlit reruns the script whenever the user interacts with the app.
+
+Because of that, chat messages would be lost if they were stored only in a regular Python variable.
+
+To keep the chat history during the session, the app uses:
+
+```python
+st.session_state["messages"]
+```
+
+This allows the chat to remember previous messages while the app is open.
 
 ## Authentication
 
@@ -216,17 +274,19 @@ Create a `.env` file in the repository root:
 HF_TOKEN=your_hugging_face_token_here
 ```
 
-or, depending on the configuration:
+or:
 
 ```env
 HUGGINGFACEHUB_API_TOKEN=your_hugging_face_token_here
 ```
 
-The `.env` file is ignored by Git and should never be committed.
+The `.env` file must never be committed to GitHub.
+
+Make sure `.env` is listed in `.gitignore`.
 
 ## Setup
 
-Create and activate a virtual environment from the repository root:
+From the repository root, create and activate a virtual environment:
 
 ```bash
 python3 -m venv .venv
@@ -236,22 +296,25 @@ source .venv/bin/activate
 Install the required libraries:
 
 ```bash
-python -m pip install huggingface-hub python-dotenv
+python -m pip install huggingface-hub python-dotenv streamlit
 ```
 
-Update the requirements file:
+Update the Hugging Face requirements file:
 
 ```bash
 python -m pip freeze > hugging-face-projects/requirements.txt
 ```
 
-## Running the Examples
+## Running the Streamlit App
 
 From the project folder:
 
 ```bash
 cd hugging-face-projects/02-inference-client
+streamlit run main.py
 ```
+
+## Running Individual Examples
 
 Run the summarization example:
 
@@ -271,42 +334,18 @@ Run the chat completion example:
 python hfapi_chat_completion.py
 ```
 
-To stop the terminal chat, type:
-
-```text
-exit
-```
-
-or press:
-
-```text
-Ctrl + C
-```
-
-depending on the version of the script.
-
-## Requirements
-
-The main dependencies used in this project are:
-
-```text
-huggingface-hub
-python-dotenv
-```
-
-Some dependencies in `requirements.txt` may be installed automatically by these main packages.
-
-## Important Usage Note
+## Important Notes
 
 Using Hugging Face hosted models through the Inference API may have limits depending on the account, model, and provider configuration.
 
-It is important to:
+Important practices:
 
-- keep the Hugging Face token private;
-- avoid committing `.env` files;
-- test with small prompts first;
-- check model availability on Hugging Face;
-- understand that some models may require permissions or gated access.
+- keep the Hugging Face token private
+- do not commit `.env` files
+- test with small prompts first
+- check if the selected model requires access approval
+- understand that remote inference depends on API availability
+- understand that some models may have usage limits or costs
 
 ## Learning Goals
 
@@ -314,8 +353,9 @@ The main goals of this project are:
 
 - Understand what the Hugging Face Inference API is
 - Use `InferenceClient` to call remote models
-- Run summarization without downloading the model locally
-- Run text generation without downloading the model locally
-- Build a simple terminal chatbot with chat completion
-- Understand the difference between text generation and chat completion
-- Practice storing API tokens safely with environment variables
+- Run summarization without downloading a model locally
+- Run text generation without downloading a model locally
+- Build a chat completion workflow
+- Create a Streamlit app for AI tools
+- Store chat history with `st.session_state`
+- Practice safe API token management
