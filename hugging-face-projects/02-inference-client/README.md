@@ -131,18 +131,19 @@ This is useful when the goal is to send a prompt and receive generated text from
 
 ## Chat Completion Example
 
+## Chat Completion Example
+
 The `hfapi_chat_completion.py` file shows how to create a simple terminal chatbot using the Hugging Face Inference Client.
 
-It also uses the `meta-llama/Llama-3.2-3B-Instruct` model.
+It uses the `meta-llama/Llama-3.2-3B-Instruct` model.
+
+The script keeps a conversation history using a list of messages. Each user message and AI response is appended to the list, allowing the model to answer with context from previous messages.
 
 Example:
 
 ```python
-client = InferenceClient(
-    model="meta-llama/Llama-3.2-3B-Instruct"
-)
-
 response = client.chat_completion(messages)
+
 ```
 
 Workflow:
@@ -159,6 +160,8 @@ InferenceClient
 Remote chat model
   ↓
 AI response
+  ↓
+Update conversation history
 ```
 
 The chat uses a list of messages with roles:

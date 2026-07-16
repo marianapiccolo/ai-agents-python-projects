@@ -18,10 +18,15 @@ messages = [
     }
 ]
 
-# Start an infinite chat loop in the terminal
+# Start a terminal chat loop
 while True:
     # Read the user message from the terminal
-    user_prompt = input("Type your message: ")
+    user_prompt = input("Type your message or 'exit' to stop: ")
+
+    # Stop the chat if the user types exit
+    if user_prompt.lower() == "exit":
+        print("Chat finished.")
+        break
 
     # Create the user message in chat format
     user_message = {
@@ -32,7 +37,7 @@ while True:
     # Add the user message to the conversation history
     messages.append(user_message)
 
-    # Send the full conversation history to the model
+    # Send the full conversation history to the remote model
     response = client.chat_completion(messages)
 
     # Access the first response choice
@@ -51,5 +56,5 @@ while True:
     # Add the AI response to the conversation history
     messages.append(ai_message)
 
-    # Display the AI response
+    # Display the AI response in the terminal
     print("AI:", response_content)
