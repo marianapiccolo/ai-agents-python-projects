@@ -1,34 +1,68 @@
 import streamlit as st
 
+from hfapi_chat_completion import complete_chat
 from hfapi_summarization import summarize_text
+from hfapi_text_generation import generate_text
 
 
-def generate_text(prompt: str | None) -> None:
-    """Display the text generation tool."""
+def text_generator(prompt: str | None) -> None:
+    """Generate text from the user prompt."""
 
-    st.write("Text generation tool selected.")
+    st.markdown("##### Ask the system to generate a text for you.")
 
     if prompt:
-        st.write("Generated text will appear here.")
+        generated_text = generate_text(prompt)
+        st.write(generated_text)
 
 
-def summarize(prompt: str | None) -> None:
+def text_summarizer(prompt: str | None) -> None:
     """Summarize the text provided by the user."""
 
     st.markdown("##### Paste the text you want to summarize in the prompt box.")
 
     if prompt:
-        summary = summarize_text(prompt)
-        st.write(summary)
+        summarized_text = summarize_text(prompt)
+        st.write(summarized_text)
 
 
 def open_chat(prompt: str | None) -> None:
-    """Display the chat tool."""
+    """Open a chat interface with the AI model."""
 
-    st.write("Chat tool selected.")
+    st.markdown("##### Chat with the AI assistant.")
 
+    # Store the conversation history in Streamlit session state
+    if "messages" not in st.session_state:
+        st.session_state["messages"] = [
+            {
+                "role": "system",
+                "content": "Answer the questions correctly and accurately."
+            }
+        ]
+
+    messages = st.session_state["messages"]
+
+    # Add the user message and call the model
     if prompt:
-        st.write("Chat response will appear here.")
+        user_message = {
+            "role": "user",
+            "content": prompt
+        }
+
+        messages.append(user_message)
+
+        updated_messages = complete_chat(messages)
+
+        st.session_state["messages"] = updated_messages
+
+    # Display the conversation, ignoring the system message
+    for message in st.session_state["messages"]:
+        if message["role"] == "system":
+            continue
+
+        role = "user" if message["role"] == "user" else "assistant"
+
+        with st.chat_message(role):
+            st.write(message["content"])
 
 
 def main_app() -> None:
@@ -60,9 +94,9 @@ def main_app() -> None:
 
     # Run the selected tool
     if selected_tool == options[0]:
-        generate_text(prompt)
+        text_generator(prompt)
     elif selected_tool == options[1]:
-        summarize(prompt)
+        text_summarizer(prompt)
     else:
         open_chat(prompt)
 
