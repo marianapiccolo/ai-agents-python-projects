@@ -30,7 +30,6 @@ def open_chat(prompt: str | None) -> None:
 
     st.markdown("##### Chat with the AI assistant.")
 
-    # Store the conversation history in Streamlit session state
     if "messages" not in st.session_state:
         st.session_state["messages"] = [
             {
@@ -41,7 +40,6 @@ def open_chat(prompt: str | None) -> None:
 
     messages = st.session_state["messages"]
 
-    # Add the user message and call the model
     if prompt:
         user_message = {
             "role": "user",
@@ -54,45 +52,39 @@ def open_chat(prompt: str | None) -> None:
 
         st.session_state["messages"] = updated_messages
 
-    # Display the conversation, ignoring the system message
     for message in st.session_state["messages"]:
-        if message["role"] == "system":
+        role = message["role"]
+        content = message["content"]
+
+        if role == "system":
             continue
 
-        role = "user" if message["role"] == "user" else "assistant"
-
         with st.chat_message(role):
-            st.write(message["content"])
+            st.write(content)
 
 
 def main_app() -> None:
     """Run the main Streamlit application."""
 
-    # Main title
     st.header("AI Assistant Tools", divider=True)
 
-    # Subtitle
     st.markdown(
         "#### Choose an AI tool, write your prompt, and get an intelligent response."
     )
 
-    # Available AI tools
     options = [
         "Generate Text",
         "Summarize Text",
         "Open Chat"
     ]
 
-    # Tool selection
     selected_tool = st.selectbox(
         "Select the AI tool you want to use",
         options=options
     )
 
-    # Prompt input field
     prompt = st.chat_input("Type your prompt here")
 
-    # Run the selected tool
     if selected_tool == options[0]:
         text_generator(prompt)
     elif selected_tool == options[1]:
